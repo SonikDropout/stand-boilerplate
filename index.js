@@ -1,12 +1,14 @@
 const path = require('path');
 const url = require('url');
 const electron = require('electron');
-const { app, BrowserWindow } = electron;
+const logger = require('./src/utils/logger');
+const usbPort = require('./src/utils/usbPort');
+const { IS_RPI: isPi } = require('./src/constants');
+const { app, BrowserWindow, ipcMain } = electron;
 
-let win;
+let win, usbPath;
 
 const mode = process.env.NODE_ENV;
-const isPi = process.platform === 'linux' && process.arch === 'arm';
 
 function reloadOnChange(win) {
   if (mode !== 'development' && mode !== 'test') return { close: () => {} };
@@ -20,6 +22,28 @@ function reloadOnChange(win) {
   });
 
   return watcher;
+}
+
+function initPeripherals(win) {
+  const serial = require(isPi ? './src/utils/serial' : './src/utils/dataGenerator');
+  usbPort.on('add', (path) => {
+    usbPath = path;
+    win.webContents.send('usbConnected', usbPath);
+  });
+  usbPort.on('remove', () => {
+    ipcMain.send('usbDisconnected');
+    usbPath = void 0;
+  });
+  serial.subscribe((d) => win.webContents.send('serialData', d));
+  ipcMain.on('startFileWrite', (_, ...args) => logger.createFile(...args));
+  ipcMain.on('excelRow', (_, ...args) => logger.writeRow(...args));
+  ipcMain.on('serialCommand', (_, ...args) => serial.sendCommand(...args));
+  ipcMain.on('saveFile', (_, ...args) => logger.saveFile(...args));
+  return {
+    removeAllListeners() {
+      usbPort.removeAllListeners();
+    },
+  };
 }
 
 function launch() {
@@ -36,15 +60,17 @@ function launch() {
 
   win.loadURL(
     url.format({
-      pathname: path.join(__dirname, '../static/index.html'),
+      pathname: path.join(__dirname, './static/index.html'),
       protocol: 'file:',
       slashes: true,
     })
   );
 
   const watcher = reloadOnChange(win);
+  const peripherals = initPeripherals(win);
 
   win.on('closed', function() {
+    peripherals.removeAllListeners();
     win = null;
     watcher.close();
   });
