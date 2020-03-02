@@ -11,9 +11,9 @@ let win, usbPath;
 const mode = process.env.NODE_ENV;
 
 function reloadOnChange(win) {
-  if (mode !== 'development' && mode !== 'test') return { close: () => {} };
+  if (mode !== 'development') return { close: () => {} };
 
-  const watcher = require('chokidar').watch(path.join(__dirname, '**'), {
+  const watcher = require('chokidar').watch(path.join(__dirname, 'dist', '**'), {
     ignoreInitial: true,
   });
 
@@ -25,23 +25,24 @@ function reloadOnChange(win) {
 }
 
 function initPeripherals(win) {
-  const serial = require(isPi ? './src/utils/serial' : './src/utils/dataGenerator');
+  const serial = require(`./src/utils/serial`);
   usbPort.on('add', (path) => {
     usbPath = path;
-    win.webContents.send('usbConnected', usbPath);
-  });
-  usbPort.on('remove', () => {
-    ipcMain.send('usbDisconnected');
+    win.webContents.send('usbConnected');
+  }).on('remove', () => {
     usbPath = void 0;
+    win.webContents.send('usbDisconnected');
   });
   serial.subscribe((d) => win.webContents.send('serialData', d));
   ipcMain.on('startFileWrite', (_, ...args) => logger.createFile(...args));
   ipcMain.on('excelRow', (_, ...args) => logger.writeRow(...args));
   ipcMain.on('serialCommand', (_, ...args) => serial.sendCommand(...args));
-  ipcMain.on('saveFile', (_, ...args) => logger.saveFile(...args));
+  ipcMain.on('saveFile', () => logger.saveFile(usbPath));
+  ipcMain.on('usbStorageRequest', usbPort.init);
   return {
     removeAllListeners() {
       usbPort.removeAllListeners();
+      serial.unsubscribeAll();
     },
   };
 }

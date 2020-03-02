@@ -1,1 +1,5 @@
- <h1>Hello world</h1>
+<script>
+  let state = STATES.initial;
+</script>
+
+<div class={state}>HELLO WORLD!</div>

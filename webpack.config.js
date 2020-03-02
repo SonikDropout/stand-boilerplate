@@ -3,7 +3,7 @@ const path = require('path');
 const mode = process.env.NODE_ENV || 'development';
 
 module.exports = {
-  entry: './src/index.js',
+  entry: './src/renderer.js',
   output: {
     filename: 'renderer.js',
     path: path.resolve(__dirname, 'dist'),
@@ -37,7 +37,7 @@ module.exports = {
   externals: [
     function(context, request, callback) {
       if (
-        /^path|fs|events|electron|drivelist|excel4node|usb-detection$/.test(
+        /^path|fs|events|serialport|electron|drivelist|excel4node|usb-detection$/.test(
           request
         )
       ) {
