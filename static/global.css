@@ -10,6 +10,7 @@
   --danger-color: #dc3545;
   --corporate-grey: #969ba5;
   --corporate-grey-darken: #74787f;
+  --warning-color: #fcee21;
 }
 
 * {
@@ -34,15 +35,15 @@ body {
   font-family: 'Montserrat', 'HelveticaNeue', 'Helvetica Neue', Helvetica, Arial,
     sans-serif;
   font-size: 1.6rem;
+  user-select: none;
 }
 
 header {
   font-size: 3.2rem;
   text-align: center;
-  margin: 0.5rem 0;
-  padding: 0;
-  height: 6.4rem;
-  line-height: 6.4rem;
+  height: 8rem;
+  line-height: 8rem;
+  font-family: 'Oswald', sans-serif;
 }
 
 .layout {
@@ -56,4 +57,31 @@ header {
 
 .layout main {
   flex-grow: 2;
+}
+
+.layout footer {
+  height: 8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 400;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+h4,h5,h6 {
+  font-weight: 300;
+}
+
+h2 {font-size: 2.4rem;}
+h3 {font-size: 2rem;}
+h4 {font-size: 2rem;}
+
+@keyframes blink {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }

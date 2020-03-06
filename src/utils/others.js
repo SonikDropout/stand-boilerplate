@@ -1,4 +1,4 @@
-const clone = (obj) => JSON.parse(JSON.stringify(obj));
+const clone = obj => JSON.parse(JSON.stringify(obj));
 
 const mergeRename = (objects, names) => {
   const result = {};
@@ -10,7 +10,13 @@ const mergeRename = (objects, names) => {
   return result;
 };
 
-const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
+const mergeKeysValues = (keys, values) =>
+  keys.reduce((map, key, i) => {
+    map[key] = values[i];
+    return map;
+  }, {});
+
+const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 const getFileDate = () => {
   const date = new Date();
@@ -18,18 +24,32 @@ const getFileDate = () => {
     1}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}`;
 };
 
-const countKeys = (obj) => {
+const countKeys = obj => {
   let n = 0;
   for (let key in obj) n++;
   return n;
 };
 
-const = randInt(min, max) => {
+const randInt = (min, max) => {
   if (isNaN(max)) {
     max = min;
     min = 0;
   }
   return (Math.random() * (max - min) + min) & 1;
-}
+};
 
-module.exports = { clone, mergeRename, capitalize, getFileDate, countKeys, randInt };
+const constraint = (val, [min, max]) => Math.max(min, Math.min(max, val));
+
+const getPercentage = (val, [min, max]) =>
+  constraint(Math.round(((val - min) / (max - min)) * 100), [0, 100]);
+
+module.exports = {
+  clone,
+  mergeRename,
+  capitalize,
+  getFileDate,
+  countKeys,
+  randInt,
+  mergeKeysValues,
+  getPercentage,
+};

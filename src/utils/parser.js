@@ -1,35 +1,25 @@
-const { SEPARATORS, DATA, STATE_DATA } = require('../constants');
-const { clone } = require('./others');
+const {
+  SEPARATORS,
+  IV_DATA,
+  STATE_DATA,
+  DATA_BYTE_LENGTH,
+} = require('../constants');
 
 function validate(buffer) {
-  if (buffer.indexOf(SEPARATORS) != 0)
+  if (buffer.indexOf(SEPARATORS) != 0 || buffer.length != DATA_BYTE_LENGTH)
     throw new Error('Invalid buffer recieved');
-}
-
-const data = {
-  ...clone(DATA),
-  power1: {
-    symbol: 'P',
-    units: 'Вт',
-  },
-  power2: {
-    symbol: 'P',
-    units: 'Вт',
-  }
 }
 
 module.exports = function parse(buf) {
   validate(buf);
-  let i = SEPARATORS.length / 2 & 1;
-  for (const key in DATA) {
-    data[key].value = +(buf.readUInt16BE(i++ * 2) / (data[key].divider || 1)).toPrecision(4);
+  const result = { iv: [], state: [] };
+  let i = SEPARATORS.length;
+  for (let j = 0; j < IV_DATA.length; j++) {
+    result.iv.push(+(buf.readUInt16BE(i) / 1000).toPrecision(4));
+    i += 2;
   }
-  i *= 2;
-  for (const key in STATE_DATA) {
-    data[key] = buf[i++];
+  for (let j = 0; j < STATE_DATA.length; j++) {
+    result.state.push(buf[i++]);
   }
-  for (const pos of [1, 2]) {
-    data['power' + pos].value = +(data['current' + pos].value * data['voltage' + pos].value).toPrecision(4);
-  }
-  return data;
+  return result;
 };
